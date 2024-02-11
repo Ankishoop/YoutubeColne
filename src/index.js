@@ -4,12 +4,27 @@
 import dotenv from "dotenv";
 //ADD dev script experimental feature
 import connectDB from "./db/index.js";
+import { app } from "./app.js";
 
 dotenv.config({
   path: "./env",
 });
 
-connectDB();
+//TODO: connectDB is async awit method which return promise means we can use it as PRomise
+
+connectDB()
+  .then(() => {
+    app.on("error", (error) => {
+      console.log("error before app is Listening");
+      throw error;
+    });
+    app.listen(process.env.PORT || 8000, () => {
+      console.log("connected to server at port ", process.env.PORT);
+    });
+  })
+  .catch((error) => {
+    console.log("Error from connectDB", error);
+  });
 
 //TODO: This is basic approach
 // import mongoose from "mongoose";
