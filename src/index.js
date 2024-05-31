@@ -10,7 +10,7 @@ dotenv.config({
   path: "./env",
 });
 
-//TODO: connectDB is async awit method which return promise means we can use it as PRomise
+//TODO: connectDB is async awit method which return promise means we can use it as Promise
 
 connectDB()
   .then(() => {
