@@ -21,10 +21,6 @@ const registerUser = asyncHandler(async (req, res) => {
   //return res
 
   const { fullName, email, username, password } = req.body;
-  // console.log("🚀 ~ registerUser ~ password:", password);
-  // console.log("🚀 ~ registerUser ~ username:", username);
-  // console.log("🚀 ~ registerUser ~ email:", email);
-  // console.log("🚀 ~ registerUser ~ fullName:", fullName);
 
   const isEmpty = [fullName, email, username, password].some((field) => {
     return field.trim() === "";
@@ -34,26 +30,37 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All field is required");
   }
 
-  const existedUSer = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
-  if (existedUSer) {
+  if (existedUser) {
     throw new ApiError(409, "User Already Exist can't be registererd");
   }
   console.log("🚀 ~ registerUser ~ req.files:", req.files);
-  const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+  const avatarLocalPath = await req.files?.avatar[0]?.path;
+  // console.log("🚀 ~ registerUser ~ avatarLocalPath:", avatarLocalPath);
+  let coverImageLocalPath;
+
+  // console.log("🚀 ~ isArray", Array.isArray(req.files?.coverImage));
+  console.log(req.files?.coverImage?.length);
+
+  if (
+    req.files &&
+    Array.isArray(req.files?.coverImage) &&
+    req.files?.coverImage.length > 0
+  ) {
+    coverImageLocalPath = await req.files?.coverImage[0].path;
+  }
+  // console.log("🚀 ~ registerUser ~ coverImageLocalPath:", coverImageLocalPath);
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "avatar is required");
   }
 
   const avatarCloudinaryURL = await uploadOnCloudinary(avatarLocalPath);
-  console.log("🚀 ~ registerUser ~ avatarCloudinaryURL:", avatarCloudinaryURL);
-
-  // if (coverImageLocalPath) {
-  // }
+  // console.log("🚀 ~ registerUser ~ avatarCloudinaryURL:", avatarCloudinaryURL);
   const coverImageCloudinaryURL = await uploadOnCloudinary(coverImageLocalPath);
 
   if (!avatarCloudinaryURL) {
@@ -83,11 +90,5 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new Apiresponse(200, createdUser, "User registered Sucessfully"));
 });
-
-// const registerUser = async (req, res) => {
-//   res.status(200).json({
-//     message: "ok bhai",
-//   });
-// };
 
 export { registerUser };
