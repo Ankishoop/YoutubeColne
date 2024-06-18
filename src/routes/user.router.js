@@ -1,11 +1,18 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import {
+  logoutUser,
+  loginUser,
+  registerUser,
+  refreshAccesstoken,
+  checktoken,
+} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
 router.route("/register").post(
-  upload.fields(
+  upload.fields([
     {
       name: "avatar",
       maxCount: 1,
@@ -13,10 +20,19 @@ router.route("/register").post(
     {
       name: "coverImage",
       maxCount: 1,
-    }
-  ),
+    },
+  ]),
   registerUser
 );
-// console.log("🚀 ~ router.route ~ max:", max)
+
+router.route("/login").post(loginUser);
+
+// secured routes
+
+router.route("/logout").post(verifyJWT, logoutUser);
+
+router.route("/refreshAccessToken").post(refreshAccesstoken);
+
+router.route("/checktoken").post(checktoken);
 
 export default router;

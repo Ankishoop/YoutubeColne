@@ -53,18 +53,34 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function (next) {
+  console.log("PASS1");
   if (!this.isModified("password")) return next();
-
+  console.log("PASS1");
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
+  // console.log("🚀 ~ password:", password);
+  // console.log("🚀 ~ this.password:", this.password);
+
   return await bcrypt.compare(password, this.password);
 };
 
-userSchema.method.generateAcessToken = async function () {
-  return await jwt.sign(
+userSchema.methods.generateAcessToken = function () {
+  // console.log("🚀 ~ this._id:", this._id);
+
+  // console.log(
+  //   "🚀 ~ process.env.ACCESS_TOKEN_SECRET:",
+  //   process.env.ACCESS_TOKEN_SECRET
+  // );
+
+  // console.log(
+  //   "🚀 ~    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,:",
+  //   process.env.ACCESS_TOKEN_EXPIRY
+  // );
+
+  return jwt.sign(
     {
       _id: this._id,
       email: this.email,
@@ -72,13 +88,15 @@ userSchema.method.generateAcessToken = async function () {
       fullName: this.fullName,
     },
     process.env.ACCESS_TOKEN_SECRET,
+
     {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+      // expiresIn: "120s",
     }
   );
 };
 
-userSchema.method.generateRefreshToken = function () {
+userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       _id: this._id,
