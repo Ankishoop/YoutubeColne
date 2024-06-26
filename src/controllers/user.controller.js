@@ -194,11 +194,17 @@ const logoutUser = asyncHandler(async (req, res) => {
   const user = req.creating_user;
   console.log("🚀 ~ logoutUser ~ user:", user);
 
-  await User.findByIdAndUpdate(user._id, {
-    $set: {
-      refreshToken: undefined,
+  await User.findByIdAndUpdate(
+    user._id,
+    {
+      $unset: {
+        refreshToken: 1,
+      },
     },
-  });
+    {
+      new: true,
+    }
+  );
 
   const options = {
     httpOnly: true,
@@ -455,6 +461,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   // user through param
 
   const { username } = req.params;
+  console.log("🚀 ~ getUserChannelProfile ~ username:", username);
 
   if (!username?.trim()) {
     throw new ApiError(400, "provide correct channel url username");
@@ -463,6 +470,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   const existedUser = await User.findOne({
     username,
   });
+  console.log("🚀 ~ getUserChannelProfile ~ existedUser:", existedUser);
 
   if (!existedUser) {
     throw new ApiError(400, "username not exist");
@@ -500,7 +508,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
           $size: "$subs",
         },
         subsTocount: {
-          $sizeL: "$substo",
+          $size: "$substo",
         },
         isSubscribed: {
           $cond: {
