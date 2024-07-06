@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiError } from "../utils/ApiError.js";
 import { video } from "../models/video.modal.js";
+import Apiresponse from "../utils/ApiResponse.js";
 
 const getAllVideos = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
@@ -76,20 +77,64 @@ const publishAVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: get video by id
+
+  const Video = await video.findById(videoId);
+  console.log("🚀 ~ togglePublishStatus ~ Video:", Video);
+  if (!Video) {
+    throw new ApiError(404, "Video is unavailable");
+  }
+
+  res.status(200).json(new Apiresponse(200, Video, "Video Found"));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: update video details like title, description, thumbnail
+  //delete old data from db annd cloudinary and update the db and also upload on clodinary
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
   //TODO: delete video
+  //find the video by id
+  // delete thumbnail and video from cloudinary
+  // delete all data related it.
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+
+  // video find using id
+  // in video details check is published ?
+
+  const Video = await video.findById(videoId);
+  // console.log("🚀 ~ togglePublishStatus ~ Video:", Video);
+  if (!Video) {
+    throw new ApiError(404, "Video is unavailable");
+  }
+
+  const Public = !Video?.isPublished;
+  // console.log("🚀 ~ togglePublishStatus ~ Public:", Public);
+
+  const updatedPublishedVideo = await video.findByIdAndUpdate(
+    videoId,
+    {
+      $set: {
+        isPublished: Public,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  // console.log(
+  //   "🚀 ~ togglePublishStatus ~ updatedPublishedVideo:",
+  //   updatedPublishedVideo
+  // );
+
+  res
+    .status(200)
+    .json(new Apiresponse(200, updatedPublishedVideo, "Video is updated"));
 });
 
 export {
